@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
-from db import Base
+from .db import Base
 from sqlalchemy.orm import relationship
 
 class Coach(Base):
@@ -12,11 +12,11 @@ class Coach(Base):
     discord_id = Column(String, unique=True, nullable=False)
 
 
-class GuiltConfig(Base):
-    __tablename__ = 'guilt_config'
+class GuildConfig(Base):
+    __tablename__ = 'guild_config'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    discord_guilt_id = Column(String, nullable=False)
+    discord_guild_id = Column(String, nullable=False)
     admin_role = Column(String, nullable=False)
     mod_role = Column(String, nullable=False)
     post_channel = Column(String, nullable=False)

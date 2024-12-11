@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from database import *
 
 
@@ -57,10 +59,10 @@ class DatabaseManager:
             return None
 
     @staticmethod
-    def create_or_update_guilt_config(self, discord_guilt_id: str, admin_role: str, mod_role: str, post_channel: str,
+    def create_or_update_guild_config(self, discord_guild_id: str, admin_role: str, mod_role: str, post_channel: str,
                                       ticket_category: str):
         with SessionLocal() as session:
-            config = session.query(GuiltConfig).filter(GuiltConfig.discord_guilt_id == discord_guilt_id).first()
+            config = session.query(GuildConfig).filter(GuildConfig.discord_guild_id == discord_guild_id).first()
 
             if config:
                 config.admin_role = admin_role
@@ -71,8 +73,8 @@ class DatabaseManager:
                 session.refresh(config)
                 return config
             else:
-                new_config = GuiltConfig(
-                    discord_guilt_id=discord_guilt_id,
+                new_config = GuildConfig(
+                    discord_guild_id=discord_guild_id,
                     admin_role=admin_role,
                     mod_role=mod_role,
                     post_channel=post_channel,
@@ -82,10 +84,11 @@ class DatabaseManager:
                 session.commit()
                 session.refresh(new_config)
                 return new_config
+
     @staticmethod
-    def get_guilt_config(discord_guilt_id: str):
+    def get_guild_config(discord_guild_id: str):
         with SessionLocal() as session:
-            config = session.query(GuiltConfig).filter(GuiltConfig.discord_guilt_id == discord_guilt_id).first()
+            config = session.query(GuildConfig).filter(GuildConfig.discord_guild_id == discord_guild_id).first()
             return config
 
 
@@ -115,7 +118,7 @@ class DatabaseManager:
             return session.query(Member).filter(Member.discord_id == discord_id).first()
 
     @staticmethod
-    def create_post(self, coach_id: int, member_id: int, button_custom_id: str, schedule_date: str, note: str = None):
+    def create_post(self, coach_id: int, member_id: int, button_custom_id: str, schedule_date: datetime, note: str = None):
         with SessionLocal() as session:
             new_post = Post(
                 coach_id=coach_id,
