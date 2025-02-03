@@ -3,6 +3,7 @@ import asyncio
 import logging
 from discord.ext import commands
 from database import DatabaseManager
+from views import AcceptCoachingPostButton
 
 
 class MyBot(commands.Bot):
@@ -11,6 +12,7 @@ class MyBot(commands.Bot):
         self.db_manager = DatabaseManager()
 
     async def setup_hook(self):
+        self.add_dynamic_items(AcceptCoachingPostButton)
         try:
             await self.load_extension("cogs.commands")
             await self.load_extension("cogs.events")
@@ -19,6 +21,7 @@ class MyBot(commands.Bot):
         except Exception as e:
             print(f"Error during sync: {e}")
 
+
 def get_discord_token(file_path: str = "DISCORD_TOKEN") -> str:
     try:
         with open(file_path, "r") as f:
@@ -26,6 +29,7 @@ def get_discord_token(file_path: str = "DISCORD_TOKEN") -> str:
     except FileNotFoundError:
         print(f"Error: file '{file_path}' not found.")
         exit(1)
+
 
 async def main():
     logging.basicConfig(level=logging.INFO,
@@ -38,9 +42,10 @@ async def main():
 
     bot = MyBot(intents=intents)
 
-    DISCORD_TOKEN = get_discord_token()
+    discord_token = get_discord_token()
     async with bot:
-        await bot.start(DISCORD_TOKEN)
+        await bot.start(discord_token)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

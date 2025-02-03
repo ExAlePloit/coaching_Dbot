@@ -1,20 +1,42 @@
-import discord
+import discord, re
 from discord import ButtonStyle, ui
 from database import crud, SessionLocal
+import uuid
 
 
-class ButtonView(ui.View):
-    def __init__(self):
+class CoachingPostView(ui.View):
+    def __init__(self, post_uuid: uuid.UUID):
         super().__init__(timeout=None)
+        self.add_item(AcceptCoachingPostButton(post_uuid))
+        # the other buttons
+        # self.add_item(AcceptCoachingButton(coach_id))
+        # self.add_item(AcceptCoachingButton(coach_id))
 
-    @discord.ui.button(label='Green', style=discord.ButtonStyle.green, custom_id='persistent_view:green')
-    async def green(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('This is green.', ephemeral=True)
 
-    @discord.ui.button(label='Red', style=discord.ButtonStyle.red, custom_id='persistent_view:red')
-    async def red(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('This is red.', ephemeral=True)
+class AcceptCoachingPostButton(discord.ui.DynamicItem[discord.ui.Button],
+                               template=r'coaching-post:accept(?P<post_uuid>[a-fA-F0-9-]+)'):
+    def __init__(self, post_uuid: str) -> None:
+        super().__init__(
+            discord.ui.Button(
+                label='Accept Coaching',
+                style=ButtonStyle.green,
+                custom_id=f'coaching-post:accept{post_uuid}',
+                emoji='\N{THUMBS UP SIGN}',
+            )
+        )
+        self.post_uuid = post_uuid
 
-    @discord.ui.button(label='Grey', style=discord.ButtonStyle.grey, custom_id='persistent_view:grey')
-    async def grey(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message('This is grey.', ephemeral=True)
+    # This is called when the button is clicked and the custom_id matches the template.
+    @classmethod
+    async def from_custom_id(cls, interaction: discord.Interaction, item: discord.ui.Button, match: re.Match[str], /):
+        post_uuid = match['post_uuid']
+        return cls(post_uuid)
+
+    # not necessary
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        # Only allow the user who created the button to interact with it.
+        # return interaction.user.id == self.user_id
+        return True
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        await interaction.response.send_message('Coach booked!', ephemeral=True)

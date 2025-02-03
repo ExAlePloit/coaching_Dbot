@@ -1,6 +1,6 @@
 from datetime import datetime
-
-from database import *
+from .db import SessionLocal
+from .models import Coach, GuildConfig, Member, Post
 
 
 class DatabaseManager:
@@ -8,7 +8,7 @@ class DatabaseManager:
         self.session = None
 
     @staticmethod
-    def create_or_update_coach(self, coach_id: int, discord_id: str = None, timezone: str = None, language: str = None,
+    def create_or_update_coach(coach_id: int, discord_id: str = None, timezone: str = None, language: str = None,
                                archived: bool = None):
         with SessionLocal() as session:
             coach = session.query(Coach).filter(Coach.id == coach_id).first()
@@ -39,17 +39,17 @@ class DatabaseManager:
                 return new_coach
 
     @staticmethod
-    def get_all_coaches(self):
+    def get_all_coaches():
         with SessionLocal() as session:
             return session.query(Coach).all()
 
     @staticmethod
-    def get_coach_by_id(self, coach_id: int):
+    def get_coach_by_id(coach_id: int):
         with SessionLocal() as session:
             return session.query(Coach).filter(Coach.id == coach_id).first()
 
     @staticmethod
-    def delete_coach(self, coach_id: int):
+    def delete_coach(coach_id: int):
         with SessionLocal() as session:
             coach = session.query(Coach).filter(Coach.id == coach_id).first()
             if coach:
@@ -59,10 +59,10 @@ class DatabaseManager:
             return None
 
     @staticmethod
-    def create_or_update_guild_config(self, discord_guild_id: str, admin_role: str, mod_role: str, post_channel: str,
-                                      ticket_category: str):
+    def create_or_update_guild_config(discord_guild: int, admin_role: int, mod_role: int, post_channel: int,
+                                      ticket_category: int):
         with SessionLocal() as session:
-            config = session.query(GuildConfig).filter(GuildConfig.discord_guild_id == discord_guild_id).first()
+            config = session.query(GuildConfig).filter(GuildConfig.discord_guild == discord_guild).first()
 
             if config:
                 config.admin_role = admin_role
@@ -74,7 +74,7 @@ class DatabaseManager:
                 return config
             else:
                 new_config = GuildConfig(
-                    discord_guild_id=discord_guild_id,
+                    discord_guild=discord_guild,
                     admin_role=admin_role,
                     mod_role=mod_role,
                     post_channel=post_channel,
@@ -86,14 +86,13 @@ class DatabaseManager:
                 return new_config
 
     @staticmethod
-    def get_guild_config(discord_guild_id: str):
+    def get_guild_config(discord_guild: int):
         with SessionLocal() as session:
-            config = session.query(GuildConfig).filter(GuildConfig.discord_guild_id == discord_guild_id).first()
+            config = session.query(GuildConfig).filter(GuildConfig.discord_guild == discord_guild).first()
             return config
 
-
     @staticmethod
-    def create_or_update_member(discord_id: str, points: int):
+    def create_or_update_member(discord_id: id, points: int):
         with SessionLocal() as session:
             member = session.query(Member).filter(Member.discord_id == discord_id).first()
 
@@ -118,7 +117,7 @@ class DatabaseManager:
             return session.query(Member).filter(Member.discord_id == discord_id).first()
 
     @staticmethod
-    def create_post(self, coach_id: int, member_id: int, button_custom_id: str, schedule_date: datetime, note: str = None):
+    def create_post(coach_id: int, member_id: int, button_custom_id: id, schedule_date: datetime, note: str = None):
         with SessionLocal() as session:
             new_post = Post(
                 coach_id=coach_id,
@@ -133,7 +132,7 @@ class DatabaseManager:
             return new_post
 
     @staticmethod
-    def update_post(self, post_id: int, coach_id: int = None, member_id: int = None, button_custom_id: str = None,
+    def update_post(post_id: int, coach_id: int = None, member_id: int = None, button_custom_id: id = None,
                     schedule_date: str = None, note: str = None):
         with SessionLocal() as session:
             post = session.query(Post).filter(Post.id == post_id).first()
@@ -154,7 +153,7 @@ class DatabaseManager:
             return None
 
     @staticmethod
-    def delete_post(self, post_id: int):
+    def delete_post(post_id: int):
         with SessionLocal() as session:
             post = session.query(Post).filter(Post.id == post_id).first()
             if post:
