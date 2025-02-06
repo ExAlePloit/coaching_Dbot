@@ -1,7 +1,8 @@
-import discord, re
-from discord import ButtonStyle, ui
-from database import crud, SessionLocal
 import uuid
+
+import discord
+import re
+from discord import ButtonStyle, ui
 
 
 class CoachingPostView(ui.View):

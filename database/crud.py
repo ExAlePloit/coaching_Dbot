@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from .db import SessionLocal
 from .models import Coach, GuildConfig, Member, Post
 
@@ -8,14 +9,14 @@ class DatabaseManager:
         self.session = None
 
     @staticmethod
-    def create_or_update_coach(coach_id: int, discord_id: str = None, timezone: str = None, language: str = None,
+    def create_or_update_coach(coach_id: str = None, discord_id: int = None, guild_discord_id: id = None,
+                               timezone: str = None, language: str = None,
                                archived: bool = None):
         with SessionLocal() as session:
+
             coach = session.query(Coach).filter(Coach.id == coach_id).first()
 
             if coach:
-                if discord_id is not None:
-                    coach.discord_id = discord_id
                 if timezone is not None:
                     coach.timezone = timezone
                 if language is not None:
@@ -27,11 +28,13 @@ class DatabaseManager:
                 session.refresh(coach)
                 return coach
             else:
+                guild_config = DatabaseManager.get_guild_config(guild_discord_id)
                 new_coach = Coach(
                     discord_id=discord_id,
                     timezone=timezone,
                     language=language,
-                    archived=archived
+                    archived=archived,
+                    guild_id=guild_config.id
                 )
                 session.add(new_coach)
                 session.commit()
@@ -49,14 +52,21 @@ class DatabaseManager:
             return session.query(Coach).filter(Coach.id == coach_id).first()
 
     @staticmethod
-    def delete_coach(coach_id: int):
+    def get_coach_by_discord(coach_discord_id: int, guild_discord_id: int) -> Coach:
+        with SessionLocal() as session:
+            return session.query(Coach).join(GuildConfig).filter(Coach.discord_id == coach_discord_id,
+                                                                 GuildConfig.discord_guild == guild_discord_id,
+                                                                 Coach.guild_id == GuildConfig.id).first()
+
+    @staticmethod
+    def delete_coach(coach_id: int) -> bool:
         with SessionLocal() as session:
             coach = session.query(Coach).filter(Coach.id == coach_id).first()
             if coach:
                 session.delete(coach)
                 session.commit()
-                return coach
-            return None
+                return True
+            return False
 
     @staticmethod
     def create_or_update_guild_config(discord_guild: int, admin_role: int, mod_role: int, post_channel: int,
@@ -86,9 +96,9 @@ class DatabaseManager:
                 return new_config
 
     @staticmethod
-    def get_guild_config(discord_guild: int):
+    def get_guild_config(discord_guild_id: int) -> GuildConfig:
         with SessionLocal() as session:
-            config = session.query(GuildConfig).filter(GuildConfig.discord_guild == discord_guild).first()
+            config = session.query(GuildConfig).filter(GuildConfig.discord_guild == discord_guild_id).first()
             return config
 
     @staticmethod

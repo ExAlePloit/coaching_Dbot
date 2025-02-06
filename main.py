@@ -1,9 +1,13 @@
-import discord
 import asyncio
 import logging
+
+import discord
 from discord.ext import commands
+
 from database import DatabaseManager
 from views import AcceptCoachingPostButton
+
+MY_GUILD = discord.Object(id=1308709364521107467)
 
 
 class MyBot(commands.Bot):
@@ -16,8 +20,11 @@ class MyBot(commands.Bot):
         try:
             await self.load_extension("cogs.commands")
             await self.load_extension("cogs.events")
-            synced = await self.tree.sync()
-            print(f"Synced {len(synced)} commands.")
+            await self.load_extension("cogs.errors")
+
+            #self.tree.copy_global_to(guild=MY_GUILD)
+            #synced = await self.tree.sync(guild=MY_GUILD)
+            #print(f"Synced {len(synced)} commands.")
         except Exception as e:
             print(f"Error during sync: {e}")
 
@@ -29,6 +36,9 @@ def get_discord_token(file_path: str = "DISCORD_TOKEN") -> str:
     except FileNotFoundError:
         print(f"Error: file '{file_path}' not found.")
         exit(1)
+
+
+
 
 
 async def main():

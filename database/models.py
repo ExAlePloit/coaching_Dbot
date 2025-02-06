@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
-from .db import Base
-from sqlalchemy.orm import relationship
 import uuid
+
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, JSON
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
+from .db import Base
 
 
 class Coach(Base):
@@ -12,7 +14,10 @@ class Coach(Base):
     timezone = Column(String, index=True)
     language = Column(String, index=True)
     archived = Column(Boolean, default=False)
-    discord_id = Column(String, unique=True, nullable=False)
+    discord_id = Column(Integer, unique=True, nullable=False)
+    guild_id = Column(UUID, ForeignKey('guild_config.id'), nullable=False)
+
+    guild = relationship("GuildConfig", backref="coaches")
 
 
 class GuildConfig(Base):
@@ -32,18 +37,22 @@ class Member(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     discord_id = Column(Integer, unique=True, nullable=False)
     points = Column(Integer, default=0)
+    guild_id = Column(UUID, ForeignKey('guild_config.id'), nullable=False)
+
+    guild = relationship("GuildConfig", backref="members")
 
 
 class Post(Base):
     __tablename__ = 'posts'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    coach_id = Column(Integer, ForeignKey('coaches.id'), nullable=False)
-    member_id = Column(Integer, ForeignKey('members.id'), nullable=True)
-    button_custom_id = Column(Integer, nullable=False)
+    coach_id = Column(UUID, ForeignKey('coaches.id'), nullable=False)
+    guild_id = Column(UUID, ForeignKey('guild_config.id'), nullable=False)
+    member_id = Column(UUID, ForeignKey('members.id'), nullable=True)
+    other_info = Column(JSON, nullable=True)
     schedule_date = Column(DateTime, nullable=False)
-    note = Column(String, nullable=True)
     ticket_channel = Column(Integer, nullable=True)
 
+    guild = relationship("GuildConfig", backref="posts")
     coach = relationship('Coach', backref='posts')
     member = relationship('Member', backref='posts')
